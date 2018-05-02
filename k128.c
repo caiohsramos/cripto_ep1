@@ -23,4 +23,24 @@ byte_t *generate_interkey(byte_t *primary_key, int i) {
 
 }
 
-//byte_t *generate_subkey(
+byte_t generate_subkey5(int j, byte_t *interkey) {
+
+}
+
+byte_t generate_subkey32(int j, byte_t *interkey) {
+
+}
+
+byte_t f1(byte_t x, byte_t k5, byte_t k32) {
+
+}
+
+byte_t f2(byte_t x, byte_t k5, byte_t k32) {
+
+}
+
+byte_t f3(byte_t x, byte_t k5, byte_t k32) {
+
+}
+
+
