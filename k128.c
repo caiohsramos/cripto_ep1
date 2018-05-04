@@ -22,7 +22,7 @@ void enc(char *in_filename, char *out_filename, char *passwd, int erase) {
 	//generate primary key
 	key = generate_primarykey(passwd);
 	//opens files
-	fp_in = fopen(in_filename, "r");
+	fp_in = fopen(in_filename, "r+");
 	fp_out = fopen(out_filename, "w+");
 	//get filesize
 	fseek(fp_in, 0, SEEK_END);
@@ -30,7 +30,7 @@ void enc(char *in_filename, char *out_filename, char *passwd, int erase) {
 	printf("Size of infile: %lu\n", file_size);
 	//go back to beginning
 	rewind(fp_in);
-	//get N (number of full blocks
+	//get N (number of full blocks)
 	N = file_size/16;
 	for(i = 0; i < N; i++) {
 		//reads a block
@@ -45,9 +45,19 @@ void enc(char *in_filename, char *out_filename, char *passwd, int erase) {
 	free(x);	
 	free(y_old);	
 	free(key);
+
+	//blank + erase if asked
+	if(erase) {
+		char blank = 0;
+		rewind(fp_in);		
+		fwrite(&blank, 1, file_size, fp_in);
+	}
+
 	//closes files
 	fclose(fp_in);
 	fclose(fp_out);
+	//deletes in_filename if asked
+	if(erase) remove(in_filename);
 }
 
 void dec(char *in_filename, char *out_filename, char *passwd, int erase) {
@@ -64,7 +74,7 @@ void dec(char *in_filename, char *out_filename, char *passwd, int erase) {
 	//generate primary key
 	key = generate_primarykey(passwd);
 	//opens files
-	fp_in = fopen(in_filename, "r");
+	fp_in = fopen(in_filename, "r+");
 	fp_out = fopen(out_filename, "w+");
 	//get filesize
 	fseek(fp_in, 0, SEEK_END);
@@ -72,7 +82,7 @@ void dec(char *in_filename, char *out_filename, char *passwd, int erase) {
 	printf("Size of infile: %lu\n", file_size);
 	//go back to beginning
 	rewind(fp_in);
-	//get N (number of full blocks
+	//get N (number of full blocks)
 	N = file_size/16;
 	for(i = 0; i < N; i++) {
 		//reads a block
@@ -87,9 +97,19 @@ void dec(char *in_filename, char *out_filename, char *passwd, int erase) {
 	free(x);	
 	free(x_old);	
 	free(key);
+	
+	//erases if asked
+	if(erase) {
+		char blank = 0;
+		rewind(fp_in);		
+		fwrite(&blank, 1, file_size, fp_in);
+	}
+
 	//closes files
 	fclose(fp_in);
 	fclose(fp_out);
+	//deletes in_filename if asked
+	if(erase) remove(in_filename);
 }
 
 byte_t *k128(byte_t *in, byte_t *y_old, byte_t *key) {
