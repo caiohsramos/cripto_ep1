@@ -6,14 +6,14 @@
 typedef unsigned int byte_t;
 
 //general encryption function
-void enc(char *, char *, char *, int , byte_t*(*func)(byte_t*,byte_t*));
+void enc(char *, char *, char *, int );
 
 //general decryption function (using pointers to function)
-//void dec(char *, char *, char *, int );
+void dec(char *, char *, char *, int );
 
 //128 bit encryption
-byte_t *k128(byte_t *, byte_t*);
-byte_t *k128_d(byte_t *, byte_t*);
+byte_t *k128(byte_t *, byte_t*, byte_t*);
+byte_t *k128_d(byte_t *, byte_t*, byte_t*);
 
 //generate 128 bit key
 byte_t *generate_primarykey(char *);
@@ -44,5 +44,7 @@ byte_t *assign_k0(byte_t *);
 //makes an iteration
 byte_t *iteration(int , byte_t *, byte_t* );
 byte_t *iteration_d(int , byte_t *, byte_t* );
+
+void xor(byte_t*, byte_t*);
 
 #endif

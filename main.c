@@ -13,16 +13,16 @@ int main(int argc, char *argv[]) {
 		case 'c':
 			//calls encrypt
 			if(argc == 9 && argv[8][1] == 'a')
-				enc(in, out, passwd, 1, &k128);
+				enc(in, out, passwd, 1);
 			else
-				enc(in, out, passwd, 0, &k128);
+				enc(in, out, passwd, 0);
 			break;
 		case 'd':
 			//calls decrypt
 			if(argc == 9 && argv[8][1] == 'a')
-				enc(in, out, passwd, 1, &k128_d);
+				dec(in, out, passwd, 1);
 			else
-				enc(in, out, passwd, 0, &k128_d);
+				dec(in, out, passwd, 0);
 			break;
 		case '1':
 			//measures randomness method 1
