@@ -14,7 +14,8 @@ void enc(char *in_filename, char *out_filename, char *passwd, int erase) {
 	byte_t *key = NULL;
 	FILE *fp_in = NULL;
 	FILE *fp_out = NULL;
-	long unsigned int file_size;
+	long unsigned int file_size, N;
+	int i;
 
 	//generate primary key
 	key = generate_primarykey(passwd);
@@ -27,12 +28,16 @@ void enc(char *in_filename, char *out_filename, char *passwd, int erase) {
 	printf("Size of infile: %lu\n", file_size);
 	//go back to beginning
 	rewind(fp_in);
-	//reads a block
-	fread(x, 1, 16, fp_in);	
-	y = k128(x, key); 
-	fwrite(y, 1, 16, fp_out);
-	//frees allocated space
-	free(y);
+	//get N (number of full blocks
+	N = file_size/16;
+	for(i = 0; i < N; i++) {
+		//reads a block
+		fread(x, 1, 16, fp_in);	
+		y = k128(x, key); 
+		fwrite(y, 1, 16, fp_out);
+		//frees allocated space
+		free(y);
+	}
 	free(x);	
 	free(key);
 	//closes files
@@ -46,7 +51,8 @@ void dec(char *in_filename, char *out_filename, char *passwd, int erase) {
 	byte_t *key = NULL;
 	FILE *fp_in = NULL;
 	FILE *fp_out = NULL;
-	long unsigned int file_size;
+	long unsigned int file_size, N;
+	int i;
 
 	//generate primary key
 	key = generate_primarykey(passwd);
@@ -59,13 +65,17 @@ void dec(char *in_filename, char *out_filename, char *passwd, int erase) {
 	printf("Size of infile: %lu\n", file_size);
 	//go back to beginning
 	rewind(fp_in);
-	//reads a block
-	fread(x, 1, 16, fp_in);	
-	y = k128_d(x,key); 
-	fwrite(y, 1, 16, fp_out);
-	//frees allocated space
+	//get N (number of full blocks
+	N = file_size/16;
+	for(i = 0; i < N; i++) {
+		//reads a block
+		fread(x, 1, 16, fp_in);	
+		y = k128_d(x,key); 
+		fwrite(y, 1, 16, fp_out);
+		//frees allocated space
+		free(y);
+	}
 	free(x);
-	free(y);
 	free(key);
 	//closes files
 	fclose(fp_in);
