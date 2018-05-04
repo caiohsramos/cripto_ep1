@@ -8,7 +8,7 @@ typedef unsigned int byte_t;
 //general encryption function
 void enc(char *, char *, char *, int , byte_t*(*func)(byte_t*,byte_t*));
 
-//general decryption function
+//general decryption function (using pointers to function)
 //void dec(char *, char *, char *, int );
 
 //128 bit encryption
