@@ -142,7 +142,9 @@ byte_t *generate_primarykey(char *key) {
 	char x[50];
 	strcpy(x, key);
 	if (strlen(x) < 16) {
-		strcat(x, x);
+		char aux[50];
+		strcpy(aux, x);
+		strcat(x, aux);
 	} 
 	memcpy(k, x, 16);
 	return k;
