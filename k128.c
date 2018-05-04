@@ -41,6 +41,7 @@ void enc(char *in_filename, char *out_filename, char *passwd, int erase) {
 		//frees allocated space
 		free(y);
 	}
+	//frees allocated space
 	free(x);	
 	free(y_old);	
 	free(key);
@@ -82,6 +83,7 @@ void dec(char *in_filename, char *out_filename, char *passwd, int erase) {
 		//frees allocated space
 		free(y);
 	}
+	//frees allocated space
 	free(x);	
 	free(x_old);	
 	free(key);
