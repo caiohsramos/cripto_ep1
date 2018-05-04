@@ -8,7 +8,7 @@
 const byte_t constM = 0xCB3725F7;
 const byte_t constR = 0x13;
 
-void enc(char *in_filename, char *out_filename, char *passwd, int erase) {
+void enc(char *in_filename, char *out_filename, char *passwd, int erase, byte_t*(*func)(byte_t*,byte_t*)) {
 	byte_t *x = (byte_t*)malloc(sizeof(byte_t)*4);
 	byte_t *y = NULL;
 	byte_t *key = NULL;
@@ -33,7 +33,7 @@ void enc(char *in_filename, char *out_filename, char *passwd, int erase) {
 	for(i = 0; i < N; i++) {
 		//reads a block
 		fread(x, 1, 16, fp_in);	
-		y = k128(x, key); 
+		y = (*func)(x, key); 
 		fwrite(y, 1, 16, fp_out);
 		//frees allocated space
 		free(y);
@@ -45,6 +45,8 @@ void enc(char *in_filename, char *out_filename, char *passwd, int erase) {
 	fclose(fp_out);
 }
 
+//not necessary with function pointer
+/*
 void dec(char *in_filename, char *out_filename, char *passwd, int erase) {
 	byte_t *x = (byte_t*)malloc(sizeof(byte_t)*4);
 	byte_t *y = NULL;
@@ -81,7 +83,7 @@ void dec(char *in_filename, char *out_filename, char *passwd, int erase) {
 	fclose(fp_in);
 	fclose(fp_out);
 }
-
+*/
 byte_t *k128(byte_t *in, byte_t *key) {
 	int i;
 	byte_t *y = (byte_t*)malloc(sizeof(byte_t)*4);
