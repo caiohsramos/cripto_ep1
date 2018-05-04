@@ -8,9 +8,11 @@
 const byte_t constM = 0xCB3725F7;
 const byte_t constR = 0x13;
 
-void enc(char *in_filename, char *out_filename, char *passwd, int erase, byte_t*(*func)(byte_t*,byte_t*)) {
+void enc(char *in_filename, char *out_filename, char *passwd, int erase) {
 	byte_t *x = (byte_t*)malloc(sizeof(byte_t)*4);
 	byte_t *y = NULL;
+	byte_t *y_old = (byte_t*)malloc(sizeof(byte_t)*4);
+	y_old[0] = y_old[1] = y_old[2] = y_old[3] = 0xffffffff;
 	byte_t *key = NULL;
 	FILE *fp_in = NULL;
 	FILE *fp_out = NULL;
@@ -33,23 +35,25 @@ void enc(char *in_filename, char *out_filename, char *passwd, int erase, byte_t*
 	for(i = 0; i < N; i++) {
 		//reads a block
 		fread(x, 1, 16, fp_in);	
-		y = (*func)(x, key); 
+		y = k128(x, y_old, key); 
 		fwrite(y, 1, 16, fp_out);
+		memcpy(y_old, y, 16);
 		//frees allocated space
 		free(y);
 	}
 	free(x);	
+	free(y_old);	
 	free(key);
 	//closes files
 	fclose(fp_in);
 	fclose(fp_out);
 }
 
-//not necessary with function pointer
-/*
 void dec(char *in_filename, char *out_filename, char *passwd, int erase) {
 	byte_t *x = (byte_t*)malloc(sizeof(byte_t)*4);
 	byte_t *y = NULL;
+	byte_t *x_old = (byte_t*)malloc(sizeof(byte_t)*4);
+	x_old[0] = x_old[1] = x_old[2] = x_old[3] = 0xffffffff;
 	byte_t *key = NULL;
 	FILE *fp_in = NULL;
 	FILE *fp_out = NULL;
@@ -61,7 +65,7 @@ void dec(char *in_filename, char *out_filename, char *passwd, int erase) {
 	//opens files
 	fp_in = fopen(in_filename, "r");
 	fp_out = fopen(out_filename, "w+");
-	//gwt filesize
+	//get filesize
 	fseek(fp_in, 0, SEEK_END);
 	file_size = ftell(fp_in);
 	printf("Size of infile: %lu\n", file_size);
@@ -72,35 +76,39 @@ void dec(char *in_filename, char *out_filename, char *passwd, int erase) {
 	for(i = 0; i < N; i++) {
 		//reads a block
 		fread(x, 1, 16, fp_in);	
-		y = k128_d(x,key); 
+		y = k128_d(x, x_old, key); 
 		fwrite(y, 1, 16, fp_out);
+		memcpy(x_old, x, 16);
 		//frees allocated space
 		free(y);
 	}
-	free(x);
+	free(x);	
+	free(x_old);	
 	free(key);
 	//closes files
 	fclose(fp_in);
 	fclose(fp_out);
 }
-*/
-byte_t *k128(byte_t *in, byte_t *key) {
+
+byte_t *k128(byte_t *in, byte_t *y_old, byte_t *key) {
 	int i;
 	byte_t *y = (byte_t*)malloc(sizeof(byte_t)*4);
 	memcpy(y, in, 16);
+	xor(y, y_old);
 	for(i = 0; i < 12; i++) {
 		y = iteration(i, y, key);
 	}
 	return y;
 }
 
-byte_t *k128_d(byte_t *in, byte_t *key) {
+byte_t *k128_d(byte_t *in, byte_t *x_old, byte_t *key) {
 	int i;
 	byte_t *y = (byte_t*)malloc(sizeof(byte_t)*4);
 	memcpy(y, in, 16);
 	for(i = 0; i < 12; i++) {
 		y = iteration_d(11-i, y, key);
 	}
+	xor(y, x_old);
 	return y;
 }
 
@@ -249,4 +257,11 @@ byte_t *assign_k0(byte_t *k) {
 	k0[2] = 0x874AA67D ^ k[2];
 	k0[3] = 0x5A827999 ^ k[3]; 
 	return k0;
+}
+
+void xor(byte_t *x, byte_t *y) {
+	x[0] = x[0]^y[0];
+	x[1] = x[1]^y[1];
+	x[2] = x[2]^y[2];
+	x[3] = x[3]^y[3];
 }
