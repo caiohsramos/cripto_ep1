@@ -11,13 +11,31 @@ const byte_t constR = 0x13;
 void enc(char *in_filename, char *out_filename, char *passwd, int erase) {
 	byte_t *x = (byte_t*)malloc(sizeof(byte_t)*4);
 	byte_t *y = NULL;
+	byte_t *key = NULL;
 	FILE *fp_in = NULL;
 	FILE *fp_out = NULL;
+	long unsigned int file_size;
+
+	//generate primary key
+	key = generate_primarykey(passwd);
+	//opens files
 	fp_in = fopen(in_filename, "r");
 	fp_out = fopen(out_filename, "w+");
+	//get filesize
+	fseek(fp_in, 0, SEEK_END);
+	file_size = ftell(fp_in);
+	printf("Size of infile: %lu\n", file_size);
+	//go back to beginning
+	rewind(fp_in);
+	//reads a block
 	fread(x, 1, 16, fp_in);	
-	y = k128(x,generate_primarykey(passwd)); 
+	y = k128(x, key); 
 	fwrite(y, 1, 16, fp_out);
+	//frees allocated space
+	free(y);
+	free(x);	
+	free(key);
+	//closes files
 	fclose(fp_in);
 	fclose(fp_out);
 }
@@ -25,31 +43,53 @@ void enc(char *in_filename, char *out_filename, char *passwd, int erase) {
 void dec(char *in_filename, char *out_filename, char *passwd, int erase) {
 	byte_t *x = (byte_t*)malloc(sizeof(byte_t)*4);
 	byte_t *y = NULL;
+	byte_t *key = NULL;
 	FILE *fp_in = NULL;
 	FILE *fp_out = NULL;
+	long unsigned int file_size;
+
+	//generate primary key
+	key = generate_primarykey(passwd);
+	//opens files
 	fp_in = fopen(in_filename, "r");
 	fp_out = fopen(out_filename, "w+");
+	//gwt filesize
+	fseek(fp_in, 0, SEEK_END);
+	file_size = ftell(fp_in);
+	printf("Size of infile: %lu\n", file_size);
+	//go back to beginning
+	rewind(fp_in);
+	//reads a block
 	fread(x, 1, 16, fp_in);	
-	y = k128_d(x,generate_primarykey(passwd)); 
+	y = k128_d(x,key); 
 	fwrite(y, 1, 16, fp_out);
+	//frees allocated space
+	free(x);
+	free(y);
+	free(key);
+	//closes files
 	fclose(fp_in);
 	fclose(fp_out);
 }
 
 byte_t *k128(byte_t *in, byte_t *key) {
 	int i;
+	byte_t *y = (byte_t*)malloc(sizeof(byte_t)*4);
+	memcpy(y, in, 16);
 	for(i = 0; i < 12; i++) {
-		in = iteration(i, in, key);
+		y = iteration(i, y, key);
 	}
-	return in;
+	return y;
 }
 
 byte_t *k128_d(byte_t *in, byte_t *key) {
 	int i;
+	byte_t *y = (byte_t*)malloc(sizeof(byte_t)*4);
+	memcpy(y, in, 16);
 	for(i = 0; i < 12; i++) {
-		in = iteration_d(11-i, in, key);
+		y = iteration_d(11-i, y, key);
 	}
-	return in;
+	return y;
 }
 
 
@@ -64,6 +104,7 @@ byte_t *iteration(int i, byte_t *x, byte_t *k) {
 	aux = x[1];
 	x[1] = x[3];
 	x[3] = aux;
+	free(interk);
 	return x;
 }
 
@@ -80,6 +121,7 @@ byte_t *iteration_d(int i, byte_t *x, byte_t *k) {
 	x[3] = x[3] ^ f3(x[2],generate_subkey5(2,interk),generate_subkey32(2,interk));
 	x[2] = x[2] ^ f1(x[1],generate_subkey5(1,interk),generate_subkey32(1,interk));
 	x[1] = x[1] ^ f2(x[0],generate_subkey5(0,interk),generate_subkey32(0,interk));
+	free(interk);
 	return x;
 }
 
