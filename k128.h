@@ -47,4 +47,7 @@ byte_t *iteration_d(int , byte_t *, byte_t* );
 
 void xor(byte_t*, byte_t*);
 
+void ones(byte_t *);
+
+
 #endif

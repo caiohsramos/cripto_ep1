@@ -41,6 +41,32 @@ void enc(char *in_filename, char *out_filename, char *passwd, int erase) {
 		//frees allocated space
 		free(y);
 	}
+	//now we have to check and encrypt the last block
+	int remain = file_size % 16;
+	if(remain != 0) {
+		//fill with ones
+		ones(x);
+		//reads the remainder block
+		fread(x, 1, remain, fp_in);	
+		//write size remain on the last byte
+		y = k128(x, y_old, key); 
+		fwrite(y, 1, 16, fp_out);
+		memcpy(y_old, y, 16);
+		//frees allocated space
+		free(y);
+	}
+
+	//records the filesize
+	//fill with ones
+	ones(x);
+	x[3] = remain;
+	printf("Remain: %d\n", x[3]);
+	//write size remain on the last byte
+	y = k128(x, y_old, key); 
+	fwrite(y, 1, 16, fp_out);
+	//frees allocated space
+	free(y);
+
 	//frees allocated space
 	free(x);	
 	free(y_old);	
@@ -84,7 +110,7 @@ void dec(char *in_filename, char *out_filename, char *passwd, int erase) {
 	rewind(fp_in);
 	//get N (number of full blocks)
 	N = file_size/16;
-	for(i = 0; i < N; i++) {
+	for(i = 0; i < (N-2); i++) {
 		//reads a block
 		fread(x, 1, 16, fp_in);	
 		y = k128_d(x, x_old, key); 
@@ -93,8 +119,26 @@ void dec(char *in_filename, char *out_filename, char *passwd, int erase) {
 		//frees allocated space
 		free(y);
 	}
+	//reads the last block
+	fread(x, 1, 16, fp_in);	
+	y = k128_d(x, x_old, key); 
+	memcpy(x_old, x, 16);
+	//saves the result
+	byte_t *y_tmp = (byte_t*)malloc(sizeof(byte_t)*4);
+	memcpy(y_tmp, y, 16);
+	//reads the size block
+	fread(x, 1, 16, fp_in);	
+	y = k128_d(x, x_old, key); 
+	int remain = y[3];
+	printf("Remain: %d\n", remain);
+	if(remain != 0) 
+		fwrite(y_tmp, 1, remain, fp_out);
+	else 
+		fwrite(y_tmp, 1, 16, fp_out);
+	free(y);
 	//frees allocated space
 	free(x);	
+	free(y_tmp);	
 	free(x_old);	
 	free(key);
 	
@@ -286,4 +330,11 @@ void xor(byte_t *x, byte_t *y) {
 	x[1] = x[1]^y[1];
 	x[2] = x[2]^y[2];
 	x[3] = x[3]^y[3];
+}
+
+void ones(byte_t *x) {
+	x[0] = 0xffffffff;
+	x[1] = 0xffffffff;
+	x[2] = 0xffffffff;
+	x[3] = 0xffffffff;
 }
