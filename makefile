@@ -7,4 +7,4 @@ k128.o: k128.c
 main.o: main.c
 	gcc main.c -c
 clean:
-	rm main.o k128.o k128 outputs/*
+	rm *.o k128 outputs/*
