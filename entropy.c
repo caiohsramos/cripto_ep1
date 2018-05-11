@@ -11,7 +11,7 @@ void entropy_1(char *in_file, char *passwd) {
 	long unsigned int j;
 	unsigned char *mem_file, *alter_file, *mem_fileC, *alter_fileC;
 	unsigned int *x, *y;
-	mask = 0x80000000;
+	mask = 0x00000001;
 	//opens file
 	fp = fopen(in_file, "r+");
 	//get the file size
@@ -38,10 +38,10 @@ void entropy_1(char *in_file, char *passwd) {
 		for(j = 0; j < 128; j++) {
 		memcpy(alter_file, mem_file, file_size);
 		//changes j bit with something like 'xor mask << j'
-		y = (unsigned int *)&alter_file[i*16];
-		x = (unsigned int *)&mem_file[i*16];
-		y[(j/32)] = x[(j/32)] ^ (mask >> j % 32);	
-		alter_file = (unsigned char *)y;
+		y = (unsigned int *)&(alter_file[i*16]);
+		x = (unsigned int *)&(mem_file[i*16]);
+		y[(j/32)] = x[(j/32)] ^ (mask << (j % 32));	
+		//alter_file = (unsigned char *)y;
 
 		//encrypt changed file
 		alter_fileC = my_encrypt(alter_file, passwd, file_size);
@@ -54,6 +54,11 @@ void entropy_1(char *in_file, char *passwd) {
 			}
 		}
 
+		printf("j: %lu\n", j);
+		printf("original: %s\n", mem_file);
+		//printf("original_enc: %s\n", mem_fileC);
+		printf("altered: %s\n", alter_file);
+		//printf("altered_enc: %s\n", alter_fileC);
 		//evaluate max, min, and sum (avg) values
 		
 		free(alter_fileC);
@@ -105,9 +110,9 @@ unsigned char *my_encrypt(unsigned char *in, char *passwd, unsigned int size) {
 	N = size/16;
 	for(i = 0; i < N; i++) {
 		//reads a block
-		memcpy(x, &in[i*16], 16);
+		memcpy(x, &(in[i*16]), 16);
 		y = k128(x, y_old, key); 
-		memcpy(&result[i*16], y, 16);
+		memcpy(&(result[i*16]), y, 16);
 		memcpy(y_old, y, 16);
 		//frees allocated space
 		free(y);
