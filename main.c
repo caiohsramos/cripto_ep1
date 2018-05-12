@@ -1,3 +1,5 @@
+//Caio Henrique Silva Ramos - NUSP 9292991
+
 #include "k128.h"
 #include "entropy.h"
 #include <stdio.h>
@@ -30,13 +32,11 @@ int main(int argc, char *argv[]) {
 		case '1':
 			strcpy(passwd, argv[5]);
 			//measures randomness method 1
-			//entropy(in, passwd, m1);
 			entropy_1(in, passwd);
 			break;
 		case '2':
 			strcpy(passwd, argv[5]);
 			//measures randomness method 1
-			//entropy(in, passwd, m2);
 			entropy_2(in, passwd);
 			break;
 		default:

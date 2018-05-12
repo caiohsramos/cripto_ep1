@@ -1,3 +1,4 @@
+//Caio Henrique Silva Ramos - NUSP 9292991
 #include <stdlib.h>
 #include <stdio.h>
 #include "k128.h"
@@ -7,6 +8,7 @@
 //constants
 const block_t constM = 0xCB3725F7;
 const block_t constR = 0x13;
+
 
 void enc(char *in_filename, char *out_filename, char *passwd, int erase) {
 	block_t *x = (block_t*)malloc(sizeof(block_t)*4);
@@ -32,6 +34,7 @@ void enc(char *in_filename, char *out_filename, char *passwd, int erase) {
 	rewind(fp_in);
 	//get N (number of full blocks)
 	N = file_size/16;
+	//encrypt block by block using CBC mode
 	for(i = 0; i < N; i++) {
 		//reads a block
 		fread(x, 1, 16, fp_in);	
@@ -48,7 +51,6 @@ void enc(char *in_filename, char *out_filename, char *passwd, int erase) {
 		ones(x);
 		//reads the remainder block
 		fread(x, 1, remain, fp_in);	
-		//write size remain on the last byte
 		y = k128(x, y_old, key); 
 		fwrite(y, 1, 16, fp_out);
 		memcpy(y_old, y, 16);
@@ -56,11 +58,10 @@ void enc(char *in_filename, char *out_filename, char *passwd, int erase) {
 		free(y);
 	}
 
-	//records the filesize
+	//records the filesize in a adicional block
 	//fill with ones
 	ones(x);
 	x[3] = remain;
-	printf("Remain: %d\n", x[3]);
 	//write size remain on the last byte
 	y = k128(x, y_old, key); 
 	fwrite(y, 1, 16, fp_out);
@@ -110,6 +111,7 @@ void dec(char *in_filename, char *out_filename, char *passwd, int erase) {
 	rewind(fp_in);
 	//get N (number of full blocks)
 	N = file_size/16;
+	//starts decryption on CBC mode
 	for(i = 0; i < (N-2); i++) {
 		//reads a block
 		fread(x, 1, 16, fp_in);	
@@ -126,11 +128,10 @@ void dec(char *in_filename, char *out_filename, char *passwd, int erase) {
 	//saves the result
 	block_t *y_tmp = (block_t*)malloc(sizeof(block_t)*4);
 	memcpy(y_tmp, y, 16);
-	//reads the size block
+	//reads the size block and saves on the result file
 	fread(x, 1, 16, fp_in);	
 	y = k128_d(x, x_old, key); 
 	int remain = y[3];
-	printf("Remain: %d\n", remain);
 	if(remain != 0) 
 		fwrite(y_tmp, 1, remain, fp_out);
 	else 
@@ -156,6 +157,7 @@ void dec(char *in_filename, char *out_filename, char *passwd, int erase) {
 	if(erase) remove(in_filename);
 }
 
+//k128 to encrypt a block
 block_t *k128(block_t *in, block_t *y_old, block_t *key) {
 	int i;
 	block_t *y = (block_t*)malloc(sizeof(block_t)*4);
@@ -167,6 +169,7 @@ block_t *k128(block_t *in, block_t *y_old, block_t *key) {
 	return y;
 }
 
+//k128 to decrypt a block
 block_t *k128_d(block_t *in, block_t *x_old, block_t *key) {
 	int i;
 	block_t *y = (block_t*)malloc(sizeof(block_t)*4);
@@ -178,7 +181,7 @@ block_t *k128_d(block_t *in, block_t *x_old, block_t *key) {
 	return y;
 }
 
-
+//one iteration of the encryption alg
 block_t *iteration(int i, block_t *x, block_t *k) {
 	block_t aux;
 	block_t *interk = generate_interkey(k, i);
@@ -194,6 +197,7 @@ block_t *iteration(int i, block_t *x, block_t *k) {
 	return x;
 }
 
+//one iteration of the decryption alg
 block_t *iteration_d(int i, block_t *x, block_t *k) {
 	block_t aux;
 	block_t *interk = generate_interkey(k, i);
@@ -306,12 +310,14 @@ block_t f3(block_t x, block_t k5, block_t k32) {
 
 }
 
+//rotation auxiliar function
 block_t _rotl(block_t value, block_t shift) {
     if ((shift &= sizeof(value)*8 - 1) == 0)
       return value;
     return (value << shift) | (value >> (sizeof(value)*8 - shift));
 }
 
+//gets a single byte of a 32 bit block
 unsigned char get_byte(block_t number, int n) {
 	return ((number >> (8*n)) & 0xff);
 }
@@ -325,6 +331,7 @@ block_t *assign_k0(block_t *k) {
 	return k0;
 }
 
+//xor between two 32 bit blocks
 void xor(block_t *x, block_t *y) {
 	x[0] = x[0]^y[0];
 	x[1] = x[1]^y[1];

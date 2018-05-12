@@ -1,3 +1,4 @@
+#Caio Henrique Silva Ramos - NUSP 9292991#
 all: k128.o entropy.o main.o
 	gcc entropy.o main.o k128.o -o k128
 entropy.o: entropy.c

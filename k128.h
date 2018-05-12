@@ -1,17 +1,18 @@
+//Caio Henrique Silva Ramos - NUSP 9292991
 #ifndef _K128_C_
 #define _K128_C_
 
 
-//typedef for byte usage
+//typedef for easier undertanding
 typedef unsigned int block_t;
 
 //general encryption function
 void enc(char *, char *, char *, int );
 
-//general decryption function (using pointers to function)
+//general decryption function 
 void dec(char *, char *, char *, int );
 
-//128 bit encryption
+//128 bit encryption and decryption
 block_t *k128(block_t *, block_t*, block_t*);
 block_t *k128_d(block_t *, block_t*, block_t*);
 
@@ -45,8 +46,10 @@ block_t *assign_k0(block_t *);
 block_t *iteration(int , block_t *, block_t* );
 block_t *iteration_d(int , block_t *, block_t* );
 
+//xor func for 32 bit block
 void xor(block_t*, block_t*);
 
+//fills a 32 bit block with ones
 void ones(block_t *);
 
 
