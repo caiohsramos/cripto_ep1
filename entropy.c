@@ -32,6 +32,10 @@ void entropy_1(char *in_file, char *passwd) {
 	//encrypt raw file
 	mem_fileC = my_encrypt(mem_file, passwd, file_size);
 
+	printf("original: %s\n", mem_file);
+	printf("original_enc: %s\n", mem_fileC);
+
+
 	//allocs alter_file
 	alter_file = (unsigned char*)malloc(sizeof(unsigned char)*file_size);
 	for(i = 0; i < n_block; i++) { 
@@ -45,27 +49,29 @@ void entropy_1(char *in_file, char *passwd) {
 
 		//encrypt changed file
 		alter_fileC = my_encrypt(alter_file, passwd, file_size);
-
 		//calculate hamming distance between mem_fileC and alter_fileC (for each block) 
 		for(k = 0; k < n_block; k++) {
 			if(k <= i) {
 				//hamming distance
-				int h = h_dis(mem_fileC, alter_fileC);
+				int h = h_dis(mem_fileC, alter_fileC, k);
+				sum[k] += h;
+				if(h > max[k]) max[k] = h;
+				if(h < min[k]) min[k] = h;
 			}
 		}
 
-		printf("j: %lu\n", j);
-		printf("original: %s\n", mem_file);
-		//printf("original_enc: %s\n", mem_fileC);
-		printf("altered: %s\n", alter_file);
-		//printf("altered_enc: %s\n", alter_fileC);
-		//evaluate max, min, and sum (avg) values
-		
+			
 		free(alter_fileC);
 		}
 		
 	}
 
+	//print h(k) results
+	printf("        Block       |         Min        |         Max        |       Average      \n");
+	printf("--------------------|--------------------|--------------------|--------------------\n");
+	for(k = 0; k < n_block; k++) {
+		printf("%20u|%20d|%20d|%20d\n", (k+1),0,0,0);
+	}
 
 
 	//free allocated space
@@ -100,8 +106,7 @@ unsigned char *my_encrypt(unsigned char *in, char *passwd, unsigned int size) {
 	y_old[0] = y_old[1] = y_old[2] = y_old[3] = 0xffffffff;
 	block_t *key = NULL;
 	long unsigned int N;
-	int i;
-	
+	int i;	
 	unsigned char *result = (unsigned char *)malloc(sizeof(unsigned char)*size);
 
 	//generate primary key
@@ -124,7 +129,7 @@ unsigned char *my_encrypt(unsigned char *in, char *passwd, unsigned int size) {
 	return result;
 }	
 
-int h_dis(unsigned char *x, unsigned char *y) {
-
+int h_dis(unsigned char *x, unsigned char *y, unsigned int k) {
+	
 	return 0;
 }
