@@ -23,17 +23,15 @@ void entropy_1(char *in_file, char *passwd) {
 
 	n_block = file_size/16;
 	//initializates values
-	sum = (long int *)calloc(n_block,sizeof(int));
+	sum = initiate_value( 0, n_block); 
 	max = initiate_value(-1, n_block); 
-	min = initiate_value(-1, n_block); 
+	min = initiate_value(129, n_block); 
 	//reads the file into mem_file
 	mem_file = (unsigned char*)malloc(sizeof(unsigned char)*file_size);
 	fread(mem_file, 1, file_size, fp);
 	//encrypt raw file
 	mem_fileC = my_encrypt(mem_file, passwd, file_size);
 
-	printf("original: %s\n", mem_file);
-	printf("original_enc: %s\n", mem_fileC);
 
 
 	//allocs alter_file
@@ -47,13 +45,17 @@ void entropy_1(char *in_file, char *passwd) {
 		y[(j/32)] = x[(j/32)] ^ (mask << (j % 32));	
 		//alter_file = (unsigned char *)y;
 
+		//printf("original: %s\n", mem_file);
+		//printf("alter: %s\n", alter_file);
+
 		//encrypt changed file
 		alter_fileC = my_encrypt(alter_file, passwd, file_size);
 		//calculate hamming distance between mem_fileC and alter_fileC (for each block) 
 		for(k = 0; k < n_block; k++) {
-			if(k <= i) {
+			if(k >= i) {
 				//hamming distance
 				int h = h_dis(mem_fileC, alter_fileC, k);
+				//printf("Distância mudando o bit %lu: %d\n", j+i*128, h);
 				sum[k] += h;
 				if(h > max[k]) max[k] = h;
 				if(h < min[k]) min[k] = h;
@@ -70,7 +72,7 @@ void entropy_1(char *in_file, char *passwd) {
 	printf("        Block       |         Min        |         Max        |       Average      \n");
 	printf("--------------------|--------------------|--------------------|--------------------\n");
 	for(k = 0; k < n_block; k++) {
-		printf("%20u|%20d|%20d|%20d\n", (k+1),0,0,0);
+		printf("%20u|%20ld|%20ld|%20.2lf\n", (k+1),min[k],max[k],sum[k]/(128.0*(k+1)));
 	}
 
 
@@ -130,6 +132,20 @@ unsigned char *my_encrypt(unsigned char *in, char *passwd, unsigned int size) {
 }	
 
 int h_dis(unsigned char *x, unsigned char *y, unsigned int k) {
-	
-	return 0;
+		unsigned int *a = (unsigned int *)&(x[k*16]);
+		unsigned int *b = (unsigned int *)&(y[k*16]);
+			
+		int sum = 0;
+		int j;
+		for(j = 0; j < 4; j++) {
+			int i  = a[j] ^ b[j];
+			i = i - ((i >> 1) & 0x55555555);
+			i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
+			i = (i + (i >> 4)) & 0x0f0f0f0f;
+			i = i + (i >> 8);
+			i = i + (i >> 16);
+			sum += i & 0x3f;		 
+		}	
+
+	return sum;
 }
